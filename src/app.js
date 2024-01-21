@@ -2,6 +2,7 @@ const express =require("express");
 const morgan =require("morgan");
 const mercadopago = require('mercadopago');
 const path = require('path');
+const cors = require('cors');
 
 const productos= require('./routes/productos.routes.js');
 const review = require('./routes/review.routes.js');
@@ -54,7 +55,14 @@ const app = express();
 // Middlewares
 app.use(morgan("dev"));
 app.use(express.json());
+app.use(cors());
 
+app.use((req, res, next) =>{
+    res.header("Access-Control-Allow-Origin", "*");
+    // res.header("Access-Control-Allow-Headers", "Content-Type,Content-Length, Authorization, Accept,X-Requested-With");
+    res.header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS");
+    next();
+})
 // Routes
 
 app.use('/publicidad',express.static(path.join(__dirname,'dbimages/publicidad')))
