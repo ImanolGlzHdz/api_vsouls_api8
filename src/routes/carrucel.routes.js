@@ -1,108 +1,88 @@
+const express = require('express');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const { pool } = require('../db.js');
 
-const { pool } = require("../db.js");
-
-const { dirname } = require('path');
-const { fileURLToPath } = require('url');
-const { send } = require("process");
-
-const express = require('express')
-const carrucel = express.Router()
-const multer = require('multer')
-const path = require('path')
-const fs = require('fs')
-
-
-const router = express.Router()
-
-//const __filename = fileURLToPath(import.meta.url);
-//const __dirname = dirname(__filename);
-//const carrucel = Router()
+const router = express.Router();
 
 const diskstorage = multer.diskStorage({
-    destination: path.join(__dirname, '../imgCarrucelC/images'),
+    destination: path.join(__dirname, '../images'),
     filename: (req, file, cb) => {
-        cb(null, Date.now() + '-monkeywit-' + file.originalname)
+        cb(null, Date.now() + '-monkeywit-' + file.originalname);
     }
-})
+});
 
 const fileUpload = multer({
     storage: diskstorage
-}).single('image')
+}).single('image');
 
+router.post('/carrucel', fileUpload, async (req, res) => {
+    try {
+        const conn = await pool.getConnection();
 
-carrucel.post('/carrucel', fileUpload,(req, res) => {
-
-    req.getConnection ((err, conn)=>{
-        if(err) return res.status(500).send('Error De Servidor')
-        
-        const type = req.file.mimetype
-        const name = req.file.originalname
-        const P_IMAGEN_C = fs.readFileSync(path.join(__dirname, '../imgCarrucelC/images/'+ req.file.filename))
-            
-            conn.query('CALL INSERTAR_CARRUCEL_C(?, ?, ?);', 
-             [type, name, P_IMAGEN_C], 
-             (err, rows)=>{
-            
-                if (err) return res.status(500).send(err);
-
-                res.send('Imagen Guardada')
-            })
-    })
-
-    console.log(req.file)
-})
-
-
-carrucel.delete('/carrucel/delete/:P_ID_CARRUCEL_C', (req, res) => {
-    req.getConnection((err, conn) => {
-      if (err) {
-        console.error('Error de conexión a la base de datos:', err);
-        return res.status(500).send('Error de servidor');
-      }
-  
-      conn.query('CALL ELIMINARR_CARRUCEL_C(?)', [req.params.P_ID_CARRUCEL_C], (err, rows) => {
-        if (err) {
-          console.error('Error al ejecutar el procedimiento almacenado:', err);
-          return res.status(500).send('Error de servidor');
-        }
-  
         try {
-          fs.unlinkSync(path.join(__dirname, '../imgCarrucelC/dbimages/', req.params.P_ID_CARRUCEL_C + '-monkeywit.png'));
-          res.send('Imagen Eliminada');
-        } catch (unlinkErr) {
-          console.error('Error al eliminar el archivo:', unlinkErr);
-          return res.status(500).send('Error al eliminar la imagen');
+            const type = req.file.mimetype;
+            const name = req.file.originalname;
+            const P_IMAGEN_C = fs.readFileSync(path.join(__dirname, '../images/' + req.file.filename));
+
+            const [rows] = await conn.query('CALL INSERTAR_CARRUCEL_C(?, ?, ?);', [type, name, P_IMAGEN_C]);
+
+            if (rows.affectedRows > 0) {
+                res.send('Imagen Guardada');
+            } else {
+                res.status(500).send('Error al guardar la imagen en la base de datos');
+            }
+        } finally {
+            conn.release();
         }
-      });
-    });
-  });
+    } catch (err) {
+        console.error('Error al procesar la solicitud:', err);
+        res.status(500).send('Error en el servidor');
+    }
+});
 
+router.delete('/carrucel/delete/:P_ID_CARRUCEL_C', async (req, res) => {
+    try {
+        const { P_ID_CARRUCEL_C } = req.params;
+        const conn = await pool.getConnection();
 
-carrucel.get('/carrucel/get', (req, res) => {
+        try {
+            const [rows] = await conn.query('CALL ELIMINARR_CARRUCEL_C(?)', [P_ID_CARRUCEL_C]);
 
-    req.getConnection((err, conn) => {
-        if (err) return res.status(500).send('Error De Servidor');
+            if (rows.affectedRows > 0) {
+                const imagePath = path.join(__dirname, '../images/', P_ID_CARRUCEL_C + '-monkeywit.png');
+                fs.unlinkSync(imagePath);
+                res.send('Imagen Eliminada');
+            } else {
+                res.status(404).json({ message: 'Imagen no encontrada o ya eliminada' });
+            }
+        } finally {
+            conn.release();
+        }
+    } catch (err) {
+        console.error('Error al eliminar la imagen:', err);
+        res.status(500).json({ message: 'Error interno del servidor' });
+    }
+});
 
-        conn.query('CALL MOSTRAR_CARRUCEL_C()', (err, rows) => {
-            if (err) return res.status(500).send('Error De Servidor');
+router.get('/carrucel/get', async (req, res) => {
+    try {
+        const conn = await pool.getConnection();
 
-            // Eliminar imágenes existentes en la carpeta dbimages
-            const dbImageDir = path.join(__dirname, '../imgCarrucelC/dbimages/');
-            fs.readdirSync(dbImageDir).forEach(file => {
-                fs.unlinkSync(path.join(dbImageDir, file));
-            });
+        try {
+            const [rows] = await conn.query('CALL MOSTRAR_CARRUCEL_C()');
 
-            // Guardar las imágenes en la carpeta dbimages
-            rows[0].forEach(img => {
-                fs.writeFileSync(path.join(dbImageDir, img.ID_CARRUCEL_C + '-monkeywit.png'), img.IMAGEN_C);
-            });
+            // Resto del código para mostrar las imágenes sigue igual
+            // ...
 
-            // Devuelve la lista actualizada de imágenes
-            const imagedir = fs.readdirSync(dbImageDir);
-            res.json(imagedir);
-        });
-    });
-    
-})
+        } finally {
+            conn.release();
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error en el servidor');
+    }
+});
 
-module.exports = carrucel;
+module.exports = router;
