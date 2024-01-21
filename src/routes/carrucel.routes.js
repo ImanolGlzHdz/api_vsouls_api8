@@ -73,9 +73,19 @@ router.get('/carrucel/get', async (req, res) => {
         try {
             const [rows] = await conn.query('CALL MOSTRAR_CARRUCEL_C()');
 
-            // Resto del código para mostrar las imágenes sigue igual
-            // ...
+            const dbImageDir = path.join(__dirname, '../imgCarrucelC/dbimages/');
+            fs.readdirSync(dbImageDir).forEach(file => {
+                fs.unlinkSync(path.join(dbImageDir, file));
+            });
 
+            // Guardar las imágenes en la carpeta dbimages
+            rows[0].forEach(img => {
+                fs.writeFileSync(path.join(dbImageDir, img.ID_CARRUCEL_C + '-monkeywit.png'), img.IMAGEN_C);
+            });
+
+            // Devuelve la lista actualizada de imágenes
+            const imagedir = fs.readdirSync(dbImageDir);
+            res.json(imagedir);
         } finally {
             conn.release();
         }
