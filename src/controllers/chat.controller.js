@@ -1,34 +1,30 @@
 const { pool } = require("../db.js");
 
 const postEnviarMensaje = async (req, res) => {
-    req.getConnection ((err, conn)=>{
-        if(err) return res.send(err)
-
+    try {
         const { mensaje, pregunta } = req.body;
         console.log('Mensaje del usuario recibido:', mensaje);
 
-    if (pregunta) {
-        // Buscar respuestas específicas para preguntas conocidas en la base de datos
-        conn.query('CALL ENVIAR_MENSAJE_CHATBOT(?)', [mensaje], (err, result) => {
-        if (err) {
-            console.error('Error al buscar respuesta en la base de datos:', err);
-            res.status(500).json({ error: 'Error al buscar respuesta en la base de datos' });
-        } else {
+        if (pregunta) {
+            // Buscar respuestas específicas para preguntas conocidas en la base de datos
+            const [result] = await pool.query('CALL ENVIAR_MENSAJE_CHATBOT(?)', [mensaje]);
+
             if (result.length > 0) {
-            // Si se encuentra una respuesta en la base de datos, enviarla al frontend
-            //const respuestaDB = result[0].respuesta;
-            console.log(result)
-            res.status(200).json({ mensaje: result[0][0].respuesta});
+                // Si se encuentra una respuesta en la base de datos, enviarla al frontend
+                console.log(result);
+                res.status(200).json({ mensaje: result[0][0].respuesta });
             } else {
-            // Si no hay respuesta en la base de datos, responder con un mensaje predeterminado
-            const respuestaDB = 'Lo siento, no tengo una respuesta para esa pregunta.';
-            res.status(200).json({ mensaje: respuestaDB });
+                // Si no hay respuesta en la base de datos, responder con un mensaje predeterminado
+                const respuestaDB = 'Lo siento, no tengo una respuesta para esa pregunta.';
+                res.status(200).json({ mensaje: respuestaDB });
             }
+        } else {
+            res.status(400).json({ error: 'La pregunta no fue proporcionada en el cuerpo de la solicitud.' });
         }
-        });
-    } 
-    })
-    
+    } catch (error) {
+        console.error('Error al buscar respuesta en la base de datos:', error);
+        res.status(500).json({ error: 'Error al buscar respuesta en la base de datos' });
+    }
 }
 
 
