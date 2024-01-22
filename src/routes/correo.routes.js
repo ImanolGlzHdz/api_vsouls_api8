@@ -25,7 +25,7 @@ correo.post('/correo/enviar-correo', (req, res) => {
         let mensaje = `¡Hola!\n
             Estimado Usuario,\n
             Esperamos que se encuentre bien. Para continuar con el proceso le solicitamos que la actualice su contraseña.\n
-            Haga clic en el siguiente http://localhost:3000/RecuperarContrasena para iniciar el proceso de actualización de contraseña.\n
+            Haga clic en el siguiente https://appwebrailwayvsoulsv2-production.up.railway.app//RecuperarContrasena para iniciar el proceso de actualización de contraseña.\n
             Por favor, asegúrese de tener su token de seguridad a la mano, ya que se le solicitará durante el proceso.\n
             Gracias por su cooperación.\n
             Atentamente,\n

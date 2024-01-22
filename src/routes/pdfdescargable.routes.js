@@ -51,7 +51,7 @@ router.delete('/pdf/delete/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const [result] = await pool.query('DELETE FROM catalogo WHERE NAME = ?', [id]);
-        const rutaArchivo = './pdfsget/' + id;
+        const rutaArchivo = '../pdfsget/' + id;
 
         fs.unlink(rutaArchivo, (error) => {
             if (error) {
