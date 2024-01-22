@@ -3,15 +3,14 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { pool } = require('../db.js');
-
 const router = express.Router();
-
 const diskStorage = multer.diskStorage({
     destination: path.join(__dirname, '../pdfs'),  // Cambiar a la carpeta donde deseas almacenar los archivos PDF
     filename: (req, file, cb) => {
         cb(null, file.originalname);
     }
 });
+const pathpdf = require('../pdfsget');
 
 const pdfUpload = multer({
     storage: diskStorage,
@@ -51,7 +50,7 @@ router.delete('/pdf/delete/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const [result] = await pool.query('DELETE FROM catalogo WHERE NAME = ?', [id]);
-        const rutaArchivo = '../pdfsget/' + id;
+        const rutaArchivo = `${pathpdf}/` + id;
 
         fs.unlink(rutaArchivo, (error) => {
             if (error) {

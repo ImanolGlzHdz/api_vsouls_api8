@@ -12,7 +12,7 @@ const diskstorage = multer.diskStorage({
         cb(null, Date.now() + '-monkeywit-' + file.originalname);
     }
 });
-
+const pathimagenes = require('../dbimages/publicidad')
 const fileUpload = multer({
     storage: diskstorage
 }).single('image');
@@ -43,7 +43,7 @@ router.delete('/publicidad/delete/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const [result] = await pool.query('DELETE FROM publicidad WHERE NAME = ?', [id]);
-        const rutaArchivo = '../dbimages/publicidad/' + id;
+        const rutaArchivo = `${pathimagenes}/` + id;
 
         fs.unlink(rutaArchivo, (error) => {
             if (error) {
