@@ -43,7 +43,7 @@ router.delete('/publicidad/delete/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const [result] = await pool.query('DELETE FROM publicidad WHERE NAME = ?', [id]);
-        const rutaArchivo = `../dbimages/publicidad/` + id;
+        const rutaArchivo = path.join(__dirname, '../dbimages/publicidad', id);
 
         fs.unlink(rutaArchivo, (error) => {
             if (error) {
@@ -63,6 +63,7 @@ router.delete('/publicidad/delete/:id', async (req, res) => {
         return res.status(500).json({ message: 'Error interno del servidor' });
     }
 });
+
 
 
 router.get('/publicidad/get', async (req, res) => {

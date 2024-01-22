@@ -50,7 +50,7 @@ router.delete('/pdf/delete/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const [result] = await pool.query('DELETE FROM catalogo WHERE NAME = ?', [id]);
-        const rutaArchivo = `../pdfsget/` + id;
+        const rutaArchivo = path.join(__dirname, '../pdfsget', id);
 
         fs.unlink(rutaArchivo, (error) => {
             if (error) {
@@ -70,6 +70,7 @@ router.delete('/pdf/delete/:id', async (req, res) => {
         return res.status(500).json({ message: 'Error interno del servidor' });
     }
 });
+
 
 router.get('/pdf/get', async (req, res) => {
     try {
