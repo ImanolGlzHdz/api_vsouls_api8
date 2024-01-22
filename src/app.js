@@ -57,12 +57,13 @@ app.use(morgan("dev"));
 app.use(express.json());
 app.use(cors());
 
-app.use((req, res, next) =>{
-    res.header("Access-Control-Allow-Origin", "*");
-    // res.header("Access-Control-Allow-Headers", "Content-Type,Content-Length, Authorization, Accept,X-Requested-With");
-    res.header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS");
-    next();
-})
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "PUT, POST, GET, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Content-Length, Authorization, Accept, X-Requested-With");
+  next();
+});
+
 // Routes
 
 app.use('/publicidad',express.static(path.join(__dirname,'dbimages/publicidad')))
