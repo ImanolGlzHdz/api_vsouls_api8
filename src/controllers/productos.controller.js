@@ -9,7 +9,17 @@ const getProductos = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
  }
- 
+ const postProductos = async (req, res) => {
+
+    const {CLAVE_P, NOMBRE_P, DESCRIPCION_P, BENEFICIOS_P, PRECIO_P,PRECIO_SOCIO_P , STOCK_P, IMG_PRINCIPAL, IMG1, IMG2, IMG3}= req.body;
+    console.log("Produtos Movil "+ CLAVE_P, NOMBRE_P, DESCRIPCION_P, BENEFICIOS_P, PRECIO_P,PRECIO_SOCIO_P , STOCK_P, IMG_PRINCIPAL, IMG1, IMG2, IMG3)
+    try {
+        const [rows] = await pool.query("INSERT INTO producto VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",[CLAVE_P,  NOMBRE_P, DESCRIPCION_P, BENEFICIOS_P, PRECIO_P,PRECIO_SOCIO_P, STOCK_P, IMG_PRINCIPAL,IMG1,IMG2, IMG3,1]);
+        res.send('Producto Agregado Movil');
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
 const getproductosconpaquetes = async (req, res) => {
      try {
          const [rows] = await pool.query("call PAQUETES_PRODUCTOS_VER");
@@ -112,5 +122,6 @@ module.exports = {
     getProductosImagenes,
     putProductos,
     getProductsClave,
-    getProductsM
+    getProductsM,
+    postProductos
  };
